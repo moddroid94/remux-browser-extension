@@ -1,73 +1,43 @@
 # m3u8DL Sniffer
 
-浏览器视频嗅探插件（Chrome / Manifest V3），嗅探网页中的 m3u8、mp4、mpd 等媒体资源，一键发送到 N_m3u8DL-RE-WEB-UI 远程下载器。
+A browser video sniffer extension (Chrome / Manifest V3) that detects media resources such as m3u8, mp4, and mpd on web pages and sends them to the N_m3u8DL-RE-WEB-UI remote downloader with one click.
 
-## 功能特性
+## Features
 
-- 🔍 **资源嗅探** - 自动识别网页中的 m3u8、mp4、mpd 等媒体资源
-- ▶️ **在线预览** - m3u8/mp4 资源可直接预览播放
-- 📥 **一键下载** - 发送到远程服务器下载
-- 🌐 **代理支持** - HTTP/HTTPS/SOCKS5 代理，支持快捷开关
-- 🌍 **AI 翻译** - 使用 AI 翻译视频标题
-- 🎨 **深色模式** - 自动跟随系统切换
+- 🔍 **Resource Sniffing** - Automatically detects media resources like m3u8, mp4, mpd, etc., on web pages.
+- ▶️ **Online Preview** - Directly preview and play m3u8/mp4 resources.
+- 📥 **One-Click Download** - Send download tasks to a remote server.
+- 🌐 **Proxy Support** - Supports HTTP/HTTPS/SOCKS5 proxies with a quick toggle.
+- 🌍 **AI Translation** - Translate video titles using AI.
+- 🎨 **Dark Mode** - Automatically syncs with system theme settings.
 
-## 工作原理
+## How It Works
 
-扩展本身只负责「嗅探 + 转发链接」，不下载视频；实际下载由远程服务器完成。
+The extension is only responsible for "sniffing + forwarding links" and does not download videos locally; the actual downloading process is handled by the remote server.
 
-![工作原理](images/principle.svg)
+## Quick Start
 
-## 快速开始
+### 1. Install the Extension
 
-### 1. 部署服务器
+1. Download the [Latest Release](https://github.com/moddroid94/remux-browser-extension/releases).
+2. Navigate to `chrome://extensions/` and enable "Developer mode".
+3. Click "Load unpacked" and select the extension directory.
 
-```bash
-docker run -d \
-  --name m3u8dl \
-  -p 8080:8080 \
-  -e ALLOW_INSECURE=true \
-  -e ALLOW_ORIGINS=* \
-  -e ADMIN_PASSWORD=admin123 \
-  -v ./db:/app/db \
-  -v ./downloads:/app/downloads \
-  ghcr.io/panoptes88/n_m3u8dl-re-web-ui:latest
-```
+### 3. Configure the Extension
 
-### 2. 安装插件
+Right-click the extension icon → Options → Enter Server URL, Username, and Password → Test Connection → Save.
 
-1. 下载 [最新版本](https://github.com/panoptes88/m3u8dl-browser-extension/releases)
-2. 打开 `chrome://extensions/`，开启「开发者模式」
-3. 点击「加载已解压的扩展程序」，选择插件目录
+## Basic Usage
 
-### 3. 配置插件
+1. Open a web page containing a video.
+2. Play the video (to trigger media sniffing).
+3. Click the extension icon to view detected resources.
+4. Select the resources you want to download.
+5. Click "Send to Remote Download".
 
-右键扩展图标 → 选项 → 填写服务器地址、用户名、密码 → 测试连接 → 保存
+![Sniffed Resources](images/plugin-sniff-resources.png)
 
-## 基本使用
 
-1. 打开包含视频的网页
-2. 播放视频（触发资源嗅探）
-3. 点击扩展图标查看嗅探到的资源
-4. 勾选要下载的资源
-5. 点击「发送到远程下载」
-
-![嗅探资源](images/plugin-sniff-resources.png)
-
-## 详细文档
-
-📖 完整文档请查看 [Wiki](wiki/)
-
-- [部署教程](wiki/部署教程.md)
-- [插件安装](wiki/插件安装.md)
-- [使用教程](wiki/使用教程.md)
-- [高级配置](wiki/高级配置.md)
-- [常见问题](wiki/常见问题.md)
-
-## 相关项目
-
-- [N_m3u8DL-RE](https://github.com/nilaoda/N_m3u8DL-RE) - m3u8 下载器
-- [N_m3u8DL-RE-WEB-UI](https://github.com/panoptes88/N_m3u8DL-RE-WEB-UI) - Web 管理界面
-
-## 许可证
+## License
 
 MIT License
