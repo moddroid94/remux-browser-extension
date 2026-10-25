@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "m3u8DL-Sniffer",
-  "description": "嗅探网页视频资源并一键发送到 N_m3u8DL-RE 下载器",
+  "description": "m3u8dl sniffer and remux companion",
   "version": "1.0.0",
   "icons": {
     "16": "icons/icon16.png",
