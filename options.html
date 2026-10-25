@@ -1,70 +1,70 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>m3u8DL Sniffer 设置</title>
+  <title>m3u8DL Sniffer Settings</title>
   <link rel="stylesheet" href="options.css">
 </head>
 <body>
   <div class="container">
     <div class="header">
       <img src="icons/icon48.png" alt="logo" class="logo">
-      <h1>m3u8DL Sniffer 设置</h1>
+      <h1>m3u8DL Sniffer Settings</h1>
     </div>
 
-    <!-- 服务器配置 -->
+    <!-- Remote Server Configuration -->
     <section class="section">
-      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>远程服务器配置</h2>
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>Remote Server Configuration</h2>
       <div class="form-group">
-        <label for="server">服务器地址</label>
+        <label for="server">Server URL</label>
         <input type="text" id="server" placeholder="http://192.168.1.100:8080">
-        <p class="help">N_m3u8DL-RE-WEB-UI 服务器地址，如 http://192.168.1.100:8080</p>
+        <p class="help">N_m3u8DL-RE-WEB-UI server address, e.g. http://192.168.1.100:8080</p>
       </div>
       <div class="form-group">
-        <label for="username">用户名</label>
+        <label for="username">Username</label>
         <input type="text" id="username" placeholder="admin">
       </div>
       <div class="form-group">
-        <label for="password">密码</label>
-        <input type="password" id="password" placeholder="请输入密码">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter password">
       </div>
       <div class="form-actions">
         <button id="btnTest" class="btn btn-secondary">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          <span class="btn-label">测试连接</span>
+          <span class="btn-label">Test Connection</span>
         </button>
         <button id="btnSave" class="btn btn-primary">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          保存配置
+          Save Settings
         </button>
       </div>
       <div id="testResult" class="test-result"></div>
     </section>
 
-    <!-- 嗅探资源类型 -->
+    <!-- Sniffing Resource Types -->
     <section class="section">
-      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>嗅探资源类型</h2>
-      <p class="help" style="margin-bottom: 12px;">取消勾选将不会嗅探该类型的资源</p>
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Sniffing Resource Types</h2>
+      <p class="help" style="margin-bottom: 12px;">Unchecked resource types will not be sniffed</p>
       <div class="ext-grid" id="extGrid">
-        <!-- 动态生成 -->
+        <!-- Dynamically generated -->
       </div>
     </section>
 
-    <!-- 代理配置 -->
+    <!-- Proxy Configuration -->
     <section class="section">
-      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>代理配置</h2>
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Proxy Configuration</h2>
       <div class="form-group">
         <label>
           <input type="checkbox" id="proxyEnable">
-          启用代理
+          Enable Proxy
         </label>
-        <p class="help">启用后，预览和下载任务将通过代理服务器</p>
+        <p class="help">When enabled, previews and download tasks will be routed through the proxy server</p>
       </div>
       <div id="proxySettings" class="hide">
         <div class="form-row">
           <div class="form-group">
-            <label for="proxyType">代理类型</label>
+            <label for="proxyType">Proxy Type</label>
             <select id="proxyType" class="select-input">
               <option value="http">HTTP</option>
               <option value="https">HTTPS</option>
@@ -72,97 +72,97 @@
             </select>
           </div>
           <div class="form-group">
-            <label for="proxyHost">代理地址</label>
+            <label for="proxyHost">Proxy Host</label>
             <input type="text" id="proxyHost" placeholder="127.0.0.1">
           </div>
           <div class="form-group">
-            <label for="proxyPort">端口</label>
+            <label for="proxyPort">Port</label>
             <input type="number" id="proxyPort" placeholder="7890" min="1" max="65535">
           </div>
         </div>
         <div class="form-group">
           <label>
             <input type="checkbox" id="proxyAuth">
-            需要认证
+            Requires Authentication
           </label>
         </div>
         <div id="proxyAuthSettings" class="form-row hide">
           <div class="form-group">
-            <label for="proxyUsername">用户名</label>
-            <input type="text" id="proxyUsername" placeholder="代理用户名">
+            <label for="proxyUsername">Username</label>
+            <input type="text" id="proxyUsername" placeholder="Proxy username">
           </div>
           <div class="form-group">
-            <label for="proxyPassword">密码</label>
-            <input type="password" id="proxyPassword" placeholder="代理密码">
+            <label for="proxyPassword">Password</label>
+            <input type="password" id="proxyPassword" placeholder="Proxy password">
           </div>
         </div>
       </div>
     </section>
 
-    <!-- AI 翻译配置 -->
+    <!-- AI Translation Configuration -->
     <section class="section">
-      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>AI 翻译配置</h2>
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>AI Translation Configuration</h2>
       <div class="form-group">
         <label>
           <input type="checkbox" id="aiTranslateEnable">
-          启用 AI 翻译
+          Enable AI Translation
         </label>
-        <p class="help">启用后，可以使用 AI 翻译视频标题</p>
+        <p class="help">When enabled, video titles can be translated using AI</p>
       </div>
       <div id="aiTranslateSettings" class="hide">
         <div class="form-group">
           <label for="aiBaseUrl">API Base URL</label>
-          <input type="text" id="aiBaseUrl" placeholder="https://api.gpt.ge">
-          <p class="help">OpenAI 兼容的 API 地址</p>
+          <input type="text" id="aiBaseUrl" placeholder="https://api.openai.com">
+          <p class="help">OpenAI-compatible API base URL</p>
         </div>
         <div class="form-group">
-          <label for="aiModelId">模型 ID</label>
+          <label for="aiModelId">Model ID</label>
           <input type="text" id="aiModelId" placeholder="gpt-4o-mini">
-          <p class="help">使用的 AI 模型，如 gpt-4o-mini, claude-3-haiku 等</p>
+          <p class="help">AI model to use, e.g. gpt-4o-mini, claude-3-haiku, etc.</p>
         </div>
         <div class="form-group">
           <label for="aiApiKey">API Key</label>
           <input type="password" id="aiApiKey" placeholder="sk-...">
-          <p class="help">API 密钥</p>
+          <p class="help">API secret key</p>
         </div>
         <div class="form-group">
-          <label for="aiPrompt">翻译提示词</label>
-          <textarea id="aiPrompt" rows="4" placeholder="请将以下内容翻译成中文，只返回翻译结果，不要添加其他内容：\n\n{text}"></textarea>
-          <p class="help">使用 {text} 作为待翻译内容的占位符</p>
+          <label for="aiPrompt">Translation Prompt</label>
+          <textarea id="aiPrompt" rows="4" placeholder="Translate the following content into English, returning only the translated result without any additional explanation:\n\n{text}"></textarea>
+          <p class="help">Use {text} as the placeholder for the input content</p>
         </div>
         <div class="form-actions">
           <button id="btnTestAi" class="btn btn-secondary">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            <span class="btn-label">测试翻译</span>
+            <span class="btn-label">Test Translation</span>
           </button>
         </div>
         <div id="aiTestResult" class="test-result"></div>
       </div>
     </section>
 
-    <!-- 下载参数 -->
+    <!-- Default Download Parameters -->
     <section class="section">
-      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>默认下载参数</h2>
+      <h2><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>Default Download Parameters</h2>
       <div class="form-row">
         <div class="form-group">
-          <label for="threadCount">线程数</label>
+          <label for="threadCount">Thread Count</label>
           <input type="number" id="threadCount" value="32" min="1" max="128">
         </div>
         <div class="form-group">
-          <label for="retryCount">重试次数</label>
+          <label for="retryCount">Retry Count</label>
           <input type="number" id="retryCount" value="15" min="0" max="100">
         </div>
       </div>
       <div class="form-group">
         <label>
           <input type="checkbox" id="autoSelect" checked>
-          自动选择最佳流 (auto_select)
+          Auto-select Best Stream (auto_select)
         </label>
-        <p class="help">自动选择最佳视频和音频流，避免交互式选择菜单</p>
+        <p class="help">Automatically selects the highest quality video and audio streams without prompting</p>
       </div>
     </section>
 
-    <!-- 保存提示 -->
+    <!-- Save Notification -->
     <div id="saveResult" class="save-result"></div>
   </div>
 
