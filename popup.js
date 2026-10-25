@@ -1,22 +1,22 @@
 /**
  * m3u8DL Sniffer - Popup Script
- * 参考猫爪实现内联视频信息展示
+ * Inline video information display
  */
 
-// 当前 tab ID
+// Current tab ID
 let currentTabId = null;
-// 嗅探到的资源列表
+// Sniffed resource list
 let resources = [];
-// 选中的资源索引集合
+// Set of selected resource indices
 let selectedIndices = new Set();
-// 服务器配置
+// Server configuration
 let serverConfig = {
   server: '',
   username: '',
   password: ''
 };
 
-// 代理配置
+// Proxy configuration
 let proxyConfig = {
   enable: false,
   type: 'http',
@@ -27,7 +27,7 @@ let proxyConfig = {
   password: ''
 };
 
-// AI 翻译配置
+// AI translation configuration
 let aiTranslateConfig = {
   enable: false,
   baseUrl: '',
@@ -36,10 +36,10 @@ let aiTranslateConfig = {
   prompt: ''
 };
 
-// 翻译状态
+// Translation status
 let isTranslating = false;
 
-// DOM 元素
+// DOM elements
 const elements = {
   status: document.getElementById('status'),
   statusDot: document.querySelector('.status-dot'),
@@ -56,69 +56,66 @@ const elements = {
   proxyToggle: document.getElementById('proxyToggle')
 };
 
-
 /**
- * 初始化
+ * Initialization
  */
 async function init() {
-  // 获取当前 tab
+  // Get current active tab
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (tab) {
     currentTabId = tab.id;
   }
 
-  // 加载配置
+  // Load configurations
   await loadConfig();
 
-  // 加载资源
+  // Load sniffed resources
   await loadResources();
 
-  // 绑定事件
+  // Bind event listeners
   bindEvents();
 
-  // 更新连接状态
+  // Update connection status
   updateConnectionStatus();
 
-  // 初始化代理开关
+  // Initialize proxy toggle switch
   initProxyToggle();
 
-  // 监听页面加载完成事件，自动刷新资源列表
+  // Listen for tab reload to automatically refresh resource list
   if (currentTabId) {
     chrome.tabs.onUpdated.addListener(function(tabId, changeInfo) {
       if (tabId === currentTabId && changeInfo.status === 'complete') {
-        // 页面加载完成，重新加载资源
+        // Page finished loading, reload resources
         loadResources();
       }
     });
   }
 
-  // 监听来自 background 的资源更新消息
+  // Listen for resource update messages from the background script
   chrome.runtime.onMessage.addListener(function(message) {
     if (message.type === 'resourceAdded' && message.tabId === currentTabId) {
-      // 新资源添加，重新加载资源列表
+      // New resource added, reload resource list
       loadResources();
     }
   });
 
-  // 监听 popup 关闭，清除请求头规则
+  // Clear request header rules when popup closes
   window.addEventListener('beforeunload', function() {
     chrome.runtime.sendMessage({ type: 'clearRequestHeaders' });
   });
 
-  // 监听配置变化，自动更新
+  // Listen for storage changes and update accordingly
   chrome.storage.onChanged.addListener(function(changes) {
-    // 检查是否有代理配置变化
+    // Check if proxy settings changed
     if (changes.proxyEnable || changes.proxyType || changes.proxyHost || changes.proxyPort ||
         changes.proxyAuth || changes.proxyUsername || changes.proxyPassword) {
-      // 重新加载配置
       loadConfig().then(() => {
-        // 更新代理开关状态
         updateProxyToggleState();
         updateConnectionStatus();
       });
     }
 
-    // 检查是否有服务器配置变化
+    // Check if server settings changed
     if (changes.server || changes.username || changes.password) {
       loadConfig().then(() => {
         updateConnectionStatus();
@@ -126,7 +123,7 @@ async function init() {
       });
     }
 
-    // 检查是否有 AI 翻译配置变化
+    // Check if AI translation settings changed
     if (changes.aiTranslateEnable || changes.aiBaseUrl || changes.aiModelId || changes.aiApiKey || changes.aiPrompt) {
       loadConfig().then(() => {
         updateConnectionStatus();
@@ -136,7 +133,7 @@ async function init() {
 }
 
 /**
- * 加载服务器配置
+ * Load server and extension configurations
  */
 async function loadConfig() {
   return new Promise((resolve) => {
@@ -163,7 +160,7 @@ async function loadConfig() {
           baseUrl: data.aiBaseUrl || '',
           modelId: data.aiModelId || '',
           apiKey: data.aiApiKey || '',
-          prompt: data.aiPrompt || '作为一名专业的翻译官，请翻译标题为简体中文：保留关键信息，控制标题字数在25字以内，仅输出翻译后的内容，不要输出无关内容\n\n{text}'
+          prompt: data.aiPrompt || 'As a professional translator, please translate this title into concise English: keep key info, stay under 50 characters, output only the translated result without extra explanations:\n\n{text}'
         };
         resolve();
       }
@@ -172,18 +169,18 @@ async function loadConfig() {
 }
 
 /**
- * 更新连接状态显示
+ * Update connection status display
  */
 function updateConnectionStatus() {
   const isConnected = serverConfig.server && serverConfig.username;
   elements.statusDot.classList.toggle('connected', isConnected);
-  let statusText = isConnected ? '已配置' : '未配置';
+  let statusText = isConnected ? 'Configured' : 'Not Configured';
   if (proxyConfig.enable && proxyConfig.host) {
-    statusText += ' | 代理: ' + proxyConfig.host;
+    statusText += ' | Proxy: ' + proxyConfig.host;
   }
   elements.statusText.textContent = statusText;
 
-  // 显示/隐藏翻译按钮
+  // Show/hide translation button
   const btnTranslate = document.getElementById('btnTranslate');
   if (btnTranslate) {
     if (aiTranslateConfig.enable && aiTranslateConfig.baseUrl && aiTranslateConfig.modelId && aiTranslateConfig.apiKey) {
@@ -195,49 +192,49 @@ function updateConnectionStatus() {
 }
 
 /**
- * 初始化代理开关
+ * Initialize proxy toggle
  */
 function initProxyToggle() {
-  // 设置初始状态
+  // Set initial state
   updateProxyToggleState();
 
-  // 监听开关变化
+  // Listen for toggle changes
   elements.proxyToggle.addEventListener('change', async function() {
     const isEnabled = this.checked;
 
-    // 保存到配置
+    // Save to sync storage
     await new Promise((resolve) => {
       chrome.storage.sync.set({ proxyEnable: isEnabled }, resolve);
     });
 
-    // 更新本地配置
+    // Update local config
     proxyConfig.enable = isEnabled;
 
-    // 更新状态显示
+    // Update status display
     updateConnectionStatus();
 
-    showToast(isEnabled ? '代理已开启' : '代理已关闭');
+    showToast(isEnabled ? 'Proxy enabled' : 'Proxy disabled');
   });
 }
 
 /**
- * 更新代理开关状态
+ * Update proxy toggle state
  */
 function updateProxyToggleState() {
   elements.proxyToggle.checked = proxyConfig.enable;
 
-  // 如果没有配置代理，禁用开关
+  // Disable toggle if no proxy is configured
   if (!proxyConfig.host || !proxyConfig.port) {
     elements.proxyToggle.disabled = true;
-    elements.proxyToggle.title = '请先在设置中配置代理';
+    elements.proxyToggle.title = 'Please configure proxy in settings first';
   } else {
     elements.proxyToggle.disabled = false;
-    elements.proxyToggle.title = '代理开关';
+    elements.proxyToggle.title = 'Proxy Toggle';
   }
 }
 
 /**
- * 从 background 加载资源
+ * Load sniffed resources from background
  */
 async function loadResources() {
   return new Promise((resolve) => {
@@ -258,13 +255,13 @@ async function loadResources() {
 }
 
 /**
- * 渲染资源列表
+ * Render resource list
  */
 function renderResources() {
-  // 更新计数
-  elements.resourceCount.textContent = `${resources.length} 个资源`;
+  // Update count display
+  elements.resourceCount.textContent = `${resources.length} resources`;
 
-  // 空状态
+  // Empty state
   if (resources.length === 0) {
     elements.resourceList.innerHTML = '';
     elements.resourceList.appendChild(elements.emptyState);
@@ -274,7 +271,7 @@ function renderResources() {
 
   elements.emptyState.style.display = 'none';
 
-  // 生成列表 HTML
+  // Generate list items HTML
   const html = resources.map((resource, index) => {
     const ext = resource.ext || 'unknown';
     const originalTitle = resource.originalTitle || resource.title || getFileName(resource.url);
@@ -294,8 +291,8 @@ function renderResources() {
           <span class="resource-name" title="${titleAttr}">${escapeHtml(fileName)}</span>
           <span class="resource-size ${sizeStr ? '' : 'hide'}">${sizeStr}</span>
           <span class="resource-ext ${ext}">${ext}</span>
-          ${isPlayable ? `<button class="btn-icon btn-play" data-index="${index}" title="预览"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>` : ''}
-          <button class="btn-icon btn-copy-url" data-index="${index}" title="复制链接"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+          ${isPlayable ? `<button class="btn-icon btn-play" data-index="${index}" title="Preview"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg></button>` : ''}
+          <button class="btn-icon btn-copy-url" data-index="${index}" title="Copy URL"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
         </div>
         <div class="panel-body hide" id="panel-${index}">
           <div class="media-info" id="media-info-${index}" data-loaded="false">
@@ -312,10 +309,10 @@ function renderResources() {
 }
 
 /**
- * 绑定事件
+ * Bind UI event listeners
  */
 function bindEvents() {
-  // 复选框点击
+  // Checkbox change event
   elements.resourceList.addEventListener('change', function(e) {
     if (e.target.classList.contains('check-item')) {
       const index = parseInt(e.target.dataset.index);
@@ -328,11 +325,11 @@ function bindEvents() {
     }
   });
 
-  // 点击事件委托
+  // Delegated click events for resources
   elements.resourceList.addEventListener('click', function(e) {
     const target = e.target;
 
-    // 播放按钮点击
+    // Play/Preview button click
     if (target.classList.contains('btn-play')) {
       e.stopPropagation();
       const index = parseInt(target.dataset.index);
@@ -340,38 +337,36 @@ function bindEvents() {
       return;
     }
 
-    // 复制链接按钮
+    // Copy URL button click
     if (target.classList.contains('btn-copy-url')) {
       e.stopPropagation();
       const index = parseInt(target.dataset.index);
       copyToClipboard(resources[index].url);
-      showToast('已复制链接');
+      showToast('URL copied');
       return;
     }
 
-    // 面板头部点击（展开/收起）
+    // Panel header click (expand / collapse)
     const heading = target.closest('.panel-heading');
     if (heading) {
       const panel = heading.closest('.resource-panel');
       const index = parseInt(panel.dataset.index);
-      // 如果点击的是复选框、按钮等，不触发展开
+      // Do not trigger toggle if clicked directly on checkboxes or action buttons
       if (target.type === 'checkbox' || target.classList.contains('btn-icon')) {
         return;
       }
-      // 切换复选框
+      // Toggle checkbox selection
       const checkbox = heading.querySelector('.check-item');
       checkbox.checked = !checkbox.checked;
-      // 必须可冒泡，否则无法被 resourceList 上的 change 委托捕获
       checkbox.dispatchEvent(new Event('change', { bubbles: true }));
     }
   });
 
-  // 刷新按钮
+  // Refresh button
   elements.btnRefresh.addEventListener('click', async function() {
-    // 清理 HLS 实例
     cleanupResources();
 
-    // 清除 background 中该 tab 的资源
+    // Clear resources in background for this tab
     await new Promise((resolve) => {
       chrome.runtime.sendMessage(
         { type: 'clearResources', tabId: currentTabId },
@@ -379,23 +374,22 @@ function bindEvents() {
       );
     });
 
-    // 刷新页面
+    // Reload tab
     if (currentTabId) {
       chrome.tabs.reload(currentTabId);
-      // 等待页面加载完成后重新加载资源
       setTimeout(async () => {
         await loadResources();
-        showToast('已刷新');
+        showToast('Refreshed');
       }, 1000);
     } else {
       resources = [];
       selectedIndices.clear();
       renderResources();
-      showToast('已刷新');
+      showToast('Refreshed');
     }
   });
 
-  // 清空按钮
+  // Clear button
   elements.btnClear.addEventListener('click', function() {
     cleanupResources();
     chrome.runtime.sendMessage(
@@ -404,12 +398,12 @@ function bindEvents() {
         resources = [];
         selectedIndices.clear();
         renderResources();
-        showToast('已清空');
+        showToast('Cleared');
       }
     );
   });
 
-  // 全选按钮
+  // Select all button
   elements.btnSelectAll.addEventListener('click', function() {
     if (selectedIndices.size === resources.length) {
       selectedIndices.clear();
@@ -419,18 +413,18 @@ function bindEvents() {
     renderResources();
   });
 
-  // 翻译按钮
+  // Translate button
   const btnTranslate = document.getElementById('btnTranslate');
   if (btnTranslate) {
     btnTranslate.addEventListener('click', handleTranslate);
   }
 
-  // 发送按钮
+  // Send download task button
   elements.btnSend.addEventListener('click', handleSend);
 }
 
 /**
- * 切换面板展开/收起
+ * Toggle collapse/expand of a resource panel
  */
 function togglePanel(index) {
   const panel = document.getElementById(`panel-${index}`);
@@ -438,19 +432,18 @@ function togglePanel(index) {
   const video = document.getElementById(`video-${index}`);
 
   if (!panel.classList.contains('hide')) {
-    // 收起
+    // Collapse
     panel.classList.add('hide');
-    // 暂停视频
     if (video && !video.paused) {
       video.pause();
     }
     return;
   }
 
-  // 展开
+  // Expand
   panel.classList.remove('hide');
 
-  // 如果还没加载过，开始加载
+  // Load video info if not loaded yet
   if (mediaInfo.dataset.loaded === 'false') {
     mediaInfo.dataset.loaded = 'true';
     loadVideoInfo(index);
@@ -458,7 +451,7 @@ function togglePanel(index) {
 }
 
 /**
- * 加载视频信息
+ * Load video information and preview
  */
 async function loadVideoInfo(index) {
   const resource = resources[index];
@@ -470,11 +463,11 @@ async function loadVideoInfo(index) {
   const isM3u8 = ['m3u8', 'm3u'].includes(resource.ext);
 
   if (isM3u8) {
-    // 先尝试 HLS.js 播放
+    // Attempt playback using HLS.js
     if (Hls.isSupported()) {
       const headers = parseHeaders(resource.headers);
 
-      // 使用 declarativeNetRequest 设置请求头（参考猫爪）
+      // Set headers using declarativeNetRequest via background
       await new Promise((resolve) => {
         chrome.runtime.sendMessage(
           { type: 'setRequestHeaders', headers: headers },
@@ -487,74 +480,73 @@ async function loadVideoInfo(index) {
       hls.loadSource(resource.url);
       hls.attachMedia(video);
 
-      // 监听 manifest 解析完成
+      // On manifest parsed
       hls.on(Hls.Events.MANIFEST_PARSED, function(event, data) {
         if (data.levels && data.levels.length > 1) {
-          appendMediaInfo(mediaInfo, '清晰度', `${data.levels.length} 个变体`);
+          appendMediaInfo(mediaInfo, 'Quality', `${data.levels.length} variants`);
           data.levels.forEach((level, i) => {
             const resolution = level.width && level.height ? `${level.width}×${level.height}` : '';
             const bitrate = level.bitrate ? formatBitrate(level.bitrate) : '';
-            const quality = resolution ? getQualityLabel(resolution) : `流 ${i + 1}`;
+            const quality = resolution ? getQualityLabel(resolution) : `Stream ${i + 1}`;
             appendMediaInfo(mediaInfo, quality, `${resolution} ${bitrate}`);
           });
         }
         video.classList.remove('hide');
       });
 
-      // 监听 level 加载
+      // On level loaded
       hls.on(Hls.Events.LEVEL_LOADED, function(event, data) {
         if (data.details && data.details.totalduration) {
-          appendMediaInfo(mediaInfo, '时长', formatDuration(data.details.totalduration));
+          appendMediaInfo(mediaInfo, 'Duration', formatDuration(data.details.totalduration));
         }
       });
 
-      // 监听视频元数据
+      // On video metadata loaded
       video.addEventListener('loadedmetadata', function() {
         if (video.duration && video.duration !== Infinity) {
-          appendMediaInfo(mediaInfo, '时长', formatDuration(video.duration));
+          appendMediaInfo(mediaInfo, 'Duration', formatDuration(video.duration));
         }
         if (video.videoWidth && video.videoHeight) {
-          appendMediaInfo(mediaInfo, '分辨率', `${video.videoWidth}×${video.videoHeight}`);
+          appendMediaInfo(mediaInfo, 'Resolution', `${video.videoWidth}×${video.videoHeight}`);
         }
         video.classList.remove('hide');
       });
 
-      // 错误处理 - 失败时回退到解析模式
+      // Error handling - fallback to text parsing mode
       hls.on(Hls.Events.ERROR, function(event, data) {
         if (data.fatal) {
           hls.destroy();
           chrome.runtime.sendMessage({ type: 'clearRequestHeaders' });
-          console.warn('[m3u8DL] HLS 播放失败，回退到解析模式');
+          console.warn('[m3u8DL] HLS playback failed, falling back to parsing mode');
           loadM3u8InfoByParsing(index);
         }
       });
     } else {
-      // 不支持 HLS，直接解析
+      // HLS not supported, parse directly
       loadM3u8InfoByParsing(index);
     }
   } else {
-    // 非 m3u8 文件
+    // Non-m3u8 files (MP4, etc.)
     video.src = resource.url;
     video.classList.remove('hide');
-    appendMediaInfo(mediaInfo, '类型', resource.ext.toUpperCase());
+    appendMediaInfo(mediaInfo, 'Type', resource.ext.toUpperCase());
   }
 }
 
 /**
- * 通过解析 m3u8 内容获取信息（备选方案）
+ * Fetch and parse m3u8 text directly (fallback)
  */
 async function loadM3u8InfoByParsing(index) {
   const resource = resources[index];
   const mediaInfo = document.getElementById(`media-info-${index}`);
 
-  // 清空之前的内容
   mediaInfo.innerHTML = '<span class="info-url">' + escapeHtml(resource.url) + '</span>';
 
   const headers = parseHeaders(resource.headers);
   const referer = headers['Referer'] || headers['referer'];
   const fetchHeaders = referer ? { Referer: referer } : {};
 
-  appendMediaInfo(mediaInfo, '状态', '解析中...');
+  appendMediaInfo(mediaInfo, 'Status', 'Parsing...');
 
   try {
     const result = await new Promise((resolve) => {
@@ -569,16 +561,16 @@ async function loadM3u8InfoByParsing(index) {
       displayM3u8Info(mediaInfo, info);
     } else {
       mediaInfo.innerHTML = '<span class="info-url">' + escapeHtml(resource.url) + '</span>';
-      appendMediaInfo(mediaInfo, '错误', result.error || '加载失败');
+      appendMediaInfo(mediaInfo, 'Error', result.error || 'Failed to load');
     }
   } catch (e) {
     mediaInfo.innerHTML = '<span class="info-url">' + escapeHtml(resource.url) + '</span>';
-    appendMediaInfo(mediaInfo, '错误', e.message);
+    appendMediaInfo(mediaInfo, 'Error', e.message);
   }
 }
 
 /**
- * 解析 m3u8 内容
+ * Parse m3u8 playlist content
  */
 function parseM3u8Content(content, baseUrl) {
   const lines = content.split('\n').map(l => l.trim()).filter(l => l);
@@ -589,11 +581,10 @@ function parseM3u8Content(content, baseUrl) {
     variants: []
   };
 
-  // 检查是否是 master playlist
+  // Check if master playlist
   if (content.includes('#EXT-X-STREAM-INF')) {
     info.isMaster = true;
 
-    // 解析变体流
     for (let i = 0; i < lines.length; i++) {
       if (lines[i].startsWith('#EXT-X-STREAM-INF:')) {
         const attrs = parseM3u8Attributes(lines[i]);
@@ -609,10 +600,10 @@ function parseM3u8Content(content, baseUrl) {
       }
     }
 
-    // 按带宽排序（从高到低）
+    // Sort variants by bandwidth descending
     info.variants.sort((a, b) => b.bandwidth - a.bandwidth);
   } else {
-    // 是 media playlist，计算时长
+    // Media playlist, calculate total duration and segment count
     let totalDuration = 0;
     let segmentCount = 0;
 
@@ -634,7 +625,7 @@ function parseM3u8Content(content, baseUrl) {
 }
 
 /**
- * 解析 m3u8 属性
+ * Parse m3u8 line attributes
  */
 function parseM3u8Attributes(line) {
   const attrs = {};
@@ -649,7 +640,7 @@ function parseM3u8Attributes(line) {
 }
 
 /**
- * 解析相对 URL
+ * Resolve relative URL against base URL
  */
 function resolveUrl(url, baseUrl) {
   if (!url) return '';
@@ -665,47 +656,45 @@ function resolveUrl(url, baseUrl) {
 }
 
 /**
- * 显示 m3u8 信息
+ * Display parsed m3u8 information
  */
 function displayM3u8Info(mediaInfo, info) {
-  // 清空
   mediaInfo.innerHTML = '';
 
   if (info.isMaster) {
-    // Master playlist - 显示所有变体
-    appendMediaInfo(mediaInfo, '类型', 'Master Playlist');
-    appendMediaInfo(mediaInfo, '清晰度', `${info.variants.length} 个变体`);
+    // Master playlist - show all variants
+    appendMediaInfo(mediaInfo, 'Type', 'Master Playlist');
+    appendMediaInfo(mediaInfo, 'Quality', `${info.variants.length} variants`);
 
     info.variants.forEach((v, i) => {
       const resolution = v.resolution ? v.resolution.replace('x', '×') : '';
       const bitrate = v.bandwidth > 0 ? formatBitrate(v.bandwidth) : '';
-      const quality = resolution ? getQualityLabel(resolution) : `流 ${i + 1}`;
+      const quality = resolution ? getQualityLabel(resolution) : `Stream ${i + 1}`;
       const infoStr = [resolution, bitrate].filter(Boolean).join(' ');
-      appendMediaInfo(mediaInfo, quality, infoStr || '未知');
+      appendMediaInfo(mediaInfo, quality, infoStr || 'Unknown');
     });
   } else {
-    // Media playlist - 显示时长和分片数
-    appendMediaInfo(mediaInfo, '类型', 'Media Playlist');
+    // Media playlist - show duration and segments
+    appendMediaInfo(mediaInfo, 'Type', 'Media Playlist');
     if (info.duration > 0) {
-      appendMediaInfo(mediaInfo, '时长', formatDuration(info.duration));
+      appendMediaInfo(mediaInfo, 'Duration', formatDuration(info.duration));
     }
     if (info.segments > 0) {
-      appendMediaInfo(mediaInfo, '分片数', `${info.segments} 个`);
+      appendMediaInfo(mediaInfo, 'Segments', `${info.segments}`);
 
-      // 估算大小（假设 2Mbps 码率）
+      // Estimated size assuming 2Mbps bitrate
       if (info.duration > 0) {
         const estimatedSize = (2000000 / 8) * info.duration;
-        appendMediaInfo(mediaInfo, '估算大小', `~${formatSize(estimatedSize)} (假设 2Mbps)`);
+        appendMediaInfo(mediaInfo, 'Estimated Size', `~${formatSize(estimatedSize)} (assuming 2Mbps)`);
       }
     }
   }
 }
 
 /**
- * 追加媒体信息
+ * Append label-value pair to media info container
  */
 function appendMediaInfo(container, label, value) {
-  // 检查是否已存在该标签
   const existing = container.querySelector(`[data-label="${label}"]`);
   if (existing) {
     existing.querySelector('.info-value').textContent = value;
@@ -720,7 +709,7 @@ function appendMediaInfo(container, label, value) {
 }
 
 /**
- * 更新选中计数
+ * Update selected items count in UI
  */
 function updateSelectedCount() {
   elements.selectedCount.textContent = selectedIndices.size;
@@ -728,31 +717,30 @@ function updateSelectedCount() {
 }
 
 /**
- * 处理发送下载任务
+ * Handle sending selected items to remote downloader
  */
 async function handleSend() {
   if (selectedIndices.size === 0) return;
 
   if (!serverConfig.server || !serverConfig.username || !serverConfig.password) {
-    showToast('请先配置服务器', 'error');
+    showToast('Please configure the server first', 'error');
     chrome.runtime.openOptionsPage();
     return;
   }
 
-  // 重新加载最新的代理配置
+  // Reload latest proxy configuration
   await loadConfig();
 
   const selectedResources = Array.from(selectedIndices).map(i => resources[i]);
 
   elements.btnSend.disabled = true;
-  elements.btnSend.querySelector('.btn-label').textContent = '发送中...';
+  elements.btnSend.querySelector('.btn-label').textContent = 'Sending...';
 
   let successCount = 0;
   let failCount = 0;
 
   for (const resource of selectedResources) {
     try {
-      // 只提取 Referer 头
       const headers = parseHeaders(resource.headers);
       const referer = headers['Referer'] || headers['referer'] || '';
 
@@ -765,7 +753,7 @@ async function handleSend() {
         retry_count: 15
       };
 
-      // 添加代理配置
+      // Apply proxy settings if enabled
       if (proxyConfig.enable && proxyConfig.host && proxyConfig.port) {
         let proxyUrl = `${proxyConfig.type}://${proxyConfig.host}:${proxyConfig.port}`;
         if (proxyConfig.auth && proxyConfig.username) {
@@ -805,34 +793,34 @@ async function handleSend() {
   }
 
   elements.btnSend.disabled = false;
-  elements.btnSend.querySelector('.btn-label').textContent = '发送到远程下载';
+  elements.btnSend.querySelector('.btn-label').textContent = 'Send to Remote Downloader';
 
   if (failCount === 0) {
-    showToast(`成功发送 ${successCount} 个任务`, 'success');
+    showToast(`Successfully sent ${successCount} task(s)`, 'success');
   } else {
-    showToast(`${successCount} 成功，${failCount} 失败`, 'error');
+    showToast(`${successCount} succeeded, ${failCount} failed`, 'error');
   }
 }
 
 /**
- * 处理翻译标题
+ * Handle AI title translation
  */
 async function handleTranslate() {
   if (isTranslating) return;
 
   if (!aiTranslateConfig.enable || !aiTranslateConfig.baseUrl || !aiTranslateConfig.modelId || !aiTranslateConfig.apiKey) {
-    showToast('请先配置 AI 翻译', 'error');
+    showToast('Please configure AI translation first', 'error');
     chrome.runtime.openOptionsPage();
     return;
   }
 
-  // 获取需要翻译的资源（已选中的或全部）
+  // Get resources to translate (selected or all)
   const indicesToTranslate = selectedIndices.size > 0
     ? Array.from(selectedIndices)
     : resources.map((_, i) => i);
 
   if (indicesToTranslate.length === 0) {
-    showToast('没有需要翻译的资源', 'error');
+    showToast('No resources to translate', 'error');
     return;
   }
 
@@ -840,7 +828,7 @@ async function handleTranslate() {
   const btnTranslate = document.getElementById('btnTranslate');
   if (btnTranslate) {
     btnTranslate.disabled = true;
-    btnTranslate.querySelector('.btn-label').textContent = '翻译中...';
+    btnTranslate.querySelector('.btn-label').textContent = 'Translating...';
   }
 
   let successCount = 0;
@@ -854,57 +842,51 @@ async function handleTranslate() {
     if (!title) continue;
 
     try {
-      console.log(`[翻译] 开始翻译 #${index}: "${title}"`);
+      console.log(`[Translate] Starting #${index}: "${title}"`);
       const translatedTitle = await callAiTranslate(title);
 
-      // 验证翻译结果
       if (!translatedTitle || translatedTitle.trim() === '') {
-        console.error(`[翻译] #${index} 翻译结果为空`);
+        console.error(`[Translate] #${index} returned empty result`);
         failCount++;
         continue;
       }
 
-      // 保存原始标题和翻译后的标题
       if (!resource.originalTitle) {
         resource.originalTitle = title;
       }
       resource.translatedTitle = translatedTitle;
       successCount++;
-      console.log(`[翻译] #${index} 成功: "${title}" → "${translatedTitle}"`);
+      console.log(`[Translate] #${index} success: "${title}" → "${translatedTitle}"`);
     } catch (e) {
-      console.error(`[翻译] #${index} 失败:`, e.message);
+      console.error(`[Translate] #${index} failed:`, e.message);
       failCount++;
     }
   }
 
-  // 重新渲染资源列表
-  console.log('[翻译] 翻译完成，重新渲染资源列表');
-  console.log('[翻译] 成功:', successCount, '失败:', failCount);
   renderResources();
 
   isTranslating = false;
   if (btnTranslate) {
     btnTranslate.disabled = false;
-    btnTranslate.querySelector('.btn-label').textContent = '翻译';
+    btnTranslate.querySelector('.btn-label').textContent = 'Translate';
   }
 
   if (failCount === 0) {
-    showToast(`成功翻译 ${successCount} 个标题`, 'success');
+    showToast(`Successfully translated ${successCount} title(s)`, 'success');
   } else {
-    showToast(`${successCount} 成功，${failCount} 失败`, 'error');
+    showToast(`${successCount} succeeded, ${failCount} failed`, 'error');
   }
 }
 
 /**
- * 调用 AI 翻译 API
+ * Call AI API for translation
  */
 async function callAiTranslate(text) {
   const url = `${aiTranslateConfig.baseUrl}/v1/chat/completions`;
-
   const prompt = aiTranslateConfig.prompt.replace('{text}', text);
 
-  console.log('[翻译] 请求 URL:', url);
-  console.log('[翻译] 请求内容:', prompt.substring(0, 100) + '...');
+  console.log('[Translate] Request URL:', url);
+  console.log('[Translate] Prompt:', prompt.substring(0, 100) + '...');
 
   const response = await fetch(url, {
     method: 'POST',
@@ -925,39 +907,38 @@ async function callAiTranslate(text) {
     })
   });
 
-  console.log('[翻译] 响应状态:', response.status);
+  console.log('[Translate] Response status:', response.status);
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    console.error('[翻译] API 错误:', errorData);
+    console.error('[Translate] API Error:', errorData);
     throw new Error(errorData.error?.message || `HTTP ${response.status}`);
   }
 
   const data = await response.json();
-  console.log('[翻译] API 响应:', JSON.stringify(data).substring(0, 200));
 
   if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-    console.error('[翻译] 无效的 API 响应:', data);
-    throw new Error('无效的 API 响应');
+    console.error('[Translate] Invalid API response:', data);
+    throw new Error('Invalid API response');
   }
 
   const result = data.choices[0].message.content.trim();
-  console.log('[翻译] 翻译结果:', result);
+  console.log('[Translate] Result:', result);
 
   if (!result) {
-    throw new Error('翻译结果为空');
+    throw new Error('Translation result is empty');
   }
 
   return result;
 }
 
 /**
- * 生成输出文件名
+ * Generate output file name
  */
 function generateOutputName(resource) {
   let name = '';
 
-  // 优先使用翻译后的标题
+  // Priority: translated title > original title > filename
   if (resource.translatedTitle && resource.translatedTitle.trim()) {
     name = resource.translatedTitle.trim();
   } else if (resource.title && resource.title.trim()) {
@@ -978,7 +959,7 @@ function generateOutputName(resource) {
 }
 
 /**
- * 从 URL 提取文件名
+ * Extract filename from URL
  */
 function getFileName(url) {
   try {
@@ -993,7 +974,7 @@ function getFileName(url) {
 }
 
 /**
- * 格式化文件大小
+ * Format file size
  */
 function formatSize(bytes) {
   if (bytes < 1024) return bytes + ' B';
@@ -1003,33 +984,33 @@ function formatSize(bytes) {
 }
 
 /**
- * 格式化时长
+ * Format duration into readable string
  */
 function formatDuration(seconds) {
-  if (!seconds || seconds === Infinity) return '未知';
-  if (seconds < 60) return `${Math.round(seconds)}秒`;
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}分${Math.round(seconds % 60)}秒`;
+  if (!seconds || seconds === Infinity) return 'Unknown';
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${Math.round(seconds % 60)}s`;
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = Math.round(seconds % 60);
-  return `${h}时${m}分${s}秒`;
+  return `${h}h ${m}m ${s}s`;
 }
 
 /**
- * 格式化码率
+ * Format bitrate into readable string
  */
 function formatBitrate(bps) {
-  if (!bps) return '未知';
+  if (!bps) return 'Unknown';
   if (bps >= 1000000) return (bps / 1000000).toFixed(2) + ' Mbps';
   if (bps >= 1000) return (bps / 1000).toFixed(0) + ' kbps';
   return bps + ' bps';
 }
 
 /**
- * 根据分辨率获取清晰度标签
+ * Get quality label according to resolution
  */
 function getQualityLabel(resolution) {
-  if (!resolution) return '未知';
+  if (!resolution) return 'Unknown';
   const parts = resolution.split(/[×x]/);
   const height = parseInt(parts[1]);
   if (height >= 2160) return '4K';
@@ -1042,7 +1023,7 @@ function getQualityLabel(resolution) {
 }
 
 /**
- * 解析请求头字符串
+ * Parse headers string into object
  */
 function parseHeaders(headerStr) {
   const headers = {};
@@ -1057,13 +1038,13 @@ function parseHeaders(headerStr) {
 }
 
 /**
- * 复制到剪贴板
+ * Copy string to clipboard
  */
 async function copyToClipboard(text) {
   try {
     await navigator.clipboard.writeText(text);
   } catch {
-    // 降级方案
+    // Fallback method
     const textarea = document.createElement('textarea');
     textarea.value = text;
     document.body.appendChild(textarea);
@@ -1074,7 +1055,7 @@ async function copyToClipboard(text) {
 }
 
 /**
- * HTML 转义
+ * Escape HTML special characters
  */
 function escapeHtml(str) {
   const div = document.createElement('div');
@@ -1083,7 +1064,7 @@ function escapeHtml(str) {
 }
 
 /**
- * 显示 Toast 提示
+ * Show toast notification
  */
 function showToast(message, type = '') {
   elements.toast.textContent = message;
@@ -1094,11 +1075,11 @@ function showToast(message, type = '') {
 }
 
 /**
- * 清理资源
+ * Cleanup resources
  */
 function cleanupResources() {
-  // 预留清理逻辑
+  // Reserved cleanup logic
 }
 
-// 初始化
+// Initialize script
 init();
