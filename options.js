@@ -2,7 +2,7 @@
  * m3u8DL Sniffer - Options Script
  */
 
-// DOM 元素
+// DOM Elements
 const elements = {
   server: document.getElementById('server'),
   username: document.getElementById('username'),
@@ -24,7 +24,7 @@ const elements = {
   proxyAuthSettings: document.getElementById('proxyAuthSettings'),
   proxyUsername: document.getElementById('proxyUsername'),
   proxyPassword: document.getElementById('proxyPassword'),
-  // AI 翻译配置
+  // AI Translation Configuration
   aiTranslateEnable: document.getElementById('aiTranslateEnable'),
   aiTranslateSettings: document.getElementById('aiTranslateSettings'),
   aiBaseUrl: document.getElementById('aiBaseUrl'),
@@ -35,7 +35,7 @@ const elements = {
   aiTestResult: document.getElementById('aiTestResult')
 };
 
-// 默认支持的资源类型
+// Default supported resource extensions
 const DEFAULT_EXTENSIONS = [
   { ext: 'm3u8', label: 'M3U8', enabled: true },
   { ext: 'mp4', label: 'MP4', enabled: true },
@@ -55,12 +55,12 @@ const DEFAULT_EXTENSIONS = [
 ];
 
 /**
- * 初始化 - 加载已保存的配置
+ * Initialization - Load saved configuration
  */
 async function init() {
   const config = await loadConfig();
 
-  // 填充表单
+  // Populate form fields
   elements.server.value = config.server || '';
   elements.username.value = config.username || '';
   elements.password.value = config.password || '';
@@ -68,7 +68,7 @@ async function init() {
   elements.retryCount.value = config.retryCount || 15;
   elements.autoSelect.checked = config.autoSelect !== false;
 
-  // 代理配置
+  // Proxy settings
   elements.proxyEnable.checked = config.proxyEnable || false;
   elements.proxyType.value = config.proxyType || 'http';
   elements.proxyHost.value = config.proxyHost || '';
@@ -77,29 +77,29 @@ async function init() {
   elements.proxyUsername.value = config.proxyUsername || '';
   elements.proxyPassword.value = config.proxyPassword || '';
 
-  // AI 翻译配置
+  // AI Translation settings
   elements.aiTranslateEnable.checked = config.aiTranslateEnable || false;
   elements.aiBaseUrl.value = config.aiBaseUrl || '';
   elements.aiModelId.value = config.aiModelId || '';
   elements.aiApiKey.value = config.aiApiKey || '';
-  elements.aiPrompt.value = config.aiPrompt || '作为一名专业的翻译官，请翻译标题为简体中文：保留关键信息，控制标题字数在25字以内，仅输出翻译后的内容，不要输出无关内容\n\n{text}';
+  elements.aiPrompt.value = config.aiPrompt || 'As a professional translator, please translate the title into concise English: keep key info, stay under 50 characters, output only the translated result without extra explanations:\n\n{text}';
 
-  // 显示/隐藏代理设置
+  // Toggle visibility of Proxy settings
   toggleProxySettings();
   toggleProxyAuthSettings();
 
-  // 显示/隐藏 AI 翻译设置
+  // Toggle visibility of AI Translation settings
   toggleAiTranslateSettings();
 
-  // 渲染资源类型网格
+  // Render resource types grid
   renderExtGrid(config.enabledExtensions);
 
-  // 绑定事件
+  // Bind events
   bindEvents();
 }
 
 /**
- * 加载配置
+ * Load configuration from sync storage
  */
 function loadConfig() {
   return new Promise((resolve) => {
@@ -115,10 +115,10 @@ function loadConfig() {
 }
 
 /**
- * 渲染资源类型网格
+ * Render resource extension checkboxes
  */
 function renderExtGrid(enabledExtensions) {
-  // 如果没有保存过配置，使用默认值
+  // Use defaults if not saved before
   const enabledSet = new Set(enabledExtensions || DEFAULT_EXTENSIONS.filter(e => e.enabled).map(e => e.ext));
 
   const html = DEFAULT_EXTENSIONS.map(item => {
@@ -135,24 +135,24 @@ function renderExtGrid(enabledExtensions) {
 }
 
 /**
- * 保存配置
+ * Save configuration to sync storage
  */
 function saveConfig() {
-  // 获取启用的扩展名
+  // Get enabled extensions
   const enabledExtensions = [];
   elements.extGrid.querySelectorAll('input[type="checkbox"]:checked').forEach(function(checkbox) {
     enabledExtensions.push(checkbox.value);
   });
 
   const config = {
-    server: elements.server.value.trim().replace(/\/+$/, ''), // 移除末尾斜杠
+    server: elements.server.value.trim().replace(/\/+$/, ''), // Remove trailing slash
     username: elements.username.value.trim(),
     password: elements.password.value,
     threadCount: parseInt(elements.threadCount.value) || 32,
     retryCount: parseInt(elements.retryCount.value) || 15,
     autoSelect: elements.autoSelect.checked,
     enabledExtensions: enabledExtensions,
-    // 代理配置
+    // Proxy configuration
     proxyEnable: elements.proxyEnable.checked,
     proxyType: elements.proxyType.value,
     proxyHost: elements.proxyHost.value.trim(),
@@ -160,7 +160,7 @@ function saveConfig() {
     proxyAuth: elements.proxyAuth.checked,
     proxyUsername: elements.proxyUsername.value.trim(),
     proxyPassword: elements.proxyPassword.value,
-    // AI 翻译配置
+    // AI Translation configuration
     aiTranslateEnable: elements.aiTranslateEnable.checked,
     aiBaseUrl: elements.aiBaseUrl.value.trim().replace(/\/+$/, ''),
     aiModelId: elements.aiModelId.value.trim(),
@@ -176,7 +176,7 @@ function saveConfig() {
 }
 
 /**
- * 切换代理设置显示
+ * Toggle proxy settings display
  */
 function toggleProxySettings() {
   if (elements.proxyEnable.checked) {
@@ -187,7 +187,7 @@ function toggleProxySettings() {
 }
 
 /**
- * 切换代理认证设置显示
+ * Toggle proxy authentication settings display
  */
 function toggleProxyAuthSettings() {
   if (elements.proxyAuth.checked) {
@@ -198,7 +198,7 @@ function toggleProxyAuthSettings() {
 }
 
 /**
- * 切换 AI 翻译设置显示
+ * Toggle AI translation settings display
  */
 function toggleAiTranslateSettings() {
   if (elements.aiTranslateEnable.checked) {
@@ -209,30 +209,30 @@ function toggleAiTranslateSettings() {
 }
 
 /**
- * 绑定事件
+ * Bind UI event listeners
  */
 function bindEvents() {
-  // 测试连接按钮
+  // Test connection button
   elements.btnTest.addEventListener('click', handleTest);
 
-  // 保存按钮
+  // Save settings button
   elements.btnSave.addEventListener('click', handleSave);
 
-  // 代理启用切换
+  // Toggle proxy
   elements.proxyEnable.addEventListener('change', toggleProxySettings);
 
-  // 代理认证切换
+  // Toggle proxy auth
   elements.proxyAuth.addEventListener('change', toggleProxyAuthSettings);
 
-  // AI 翻译启用切换
+  // Toggle AI translation
   elements.aiTranslateEnable.addEventListener('change', toggleAiTranslateSettings);
 
-  // 测试 AI 翻译按钮
+  // Test AI translation button
   elements.btnTestAi.addEventListener('click', handleTestAiTranslate);
 }
 
 /**
- * 测试服务器连接
+ * Test remote server connection
  */
 async function handleTest() {
   const server = elements.server.value.trim();
@@ -240,18 +240,18 @@ async function handleTest() {
   const password = elements.password.value;
 
   if (!server) {
-    showTestResult('请输入服务器地址', 'error');
+    showTestResult('Please enter the server address', 'error');
     return;
   }
 
   if (!username || !password) {
-    showTestResult('请输入用户名和密码', 'error');
+    showTestResult('Please enter username and password', 'error');
     return;
   }
 
-  // 禁用按钮
+  // Disable test button
   elements.btnTest.disabled = true;
-  elements.btnTest.querySelector('.btn-label').textContent = '测试中...';
+  elements.btnTest.querySelector('.btn-label').textContent = 'Testing...';
 
   try {
     const result = await new Promise((resolve) => {
@@ -267,28 +267,28 @@ async function handleTest() {
     });
 
     if (result.success) {
-      showTestResult(`连接成功！用户: ${result.user.username || username}`, 'success');
+      showTestResult(`Connection successful! User: ${result.user.username || username}`, 'success');
     } else {
-      showTestResult(`连接失败: ${result.error}`, 'error');
+      showTestResult(`Connection failed: ${result.error}`, 'error');
     }
   } catch (e) {
-    showTestResult(`连接错误: ${e.message}`, 'error');
+    showTestResult(`Connection error: ${e.message}`, 'error');
   } finally {
     elements.btnTest.disabled = false;
-    elements.btnTest.querySelector('.btn-label').textContent = '测试连接';
+    elements.btnTest.querySelector('.btn-label').textContent = 'Test Connection';
   }
 }
 
 /**
- * 保存配置
+ * Save configuration handler
  */
 async function handleSave() {
   const config = await saveConfig();
-  showSaveResult('配置已保存');
+  showSaveResult('Settings saved successfully');
 }
 
 /**
- * 显示测试结果
+ * Show server connection test result
  */
 function showTestResult(message, type) {
   elements.testResult.textContent = message;
@@ -296,7 +296,7 @@ function showTestResult(message, type) {
 }
 
 /**
- * 显示保存提示
+ * Show save confirmation banner
  */
 function showSaveResult(message) {
   elements.saveResult.textContent = message;
@@ -307,7 +307,7 @@ function showSaveResult(message) {
 }
 
 /**
- * 测试 AI 翻译
+ * Test AI translation functionality
  */
 async function handleTestAiTranslate() {
   const baseUrl = elements.aiBaseUrl.value.trim();
@@ -316,32 +316,31 @@ async function handleTestAiTranslate() {
   const prompt = elements.aiPrompt.value;
 
   if (!baseUrl || !modelId || !apiKey) {
-    showAiTestResult('请填写完整的 AI 配置', 'error');
+    showAiTestResult('Please complete all required AI configuration fields', 'error');
     return;
   }
 
-  // 禁用按钮
+  // Disable AI test button
   elements.btnTestAi.disabled = true;
-  elements.btnTestAi.querySelector('.btn-label').textContent = '测试中...';
+  elements.btnTestAi.querySelector('.btn-label').textContent = 'Testing...';
 
   try {
     const testText = 'Hello, World!';
     const translatedText = await callAiTranslate(testText, baseUrl, modelId, apiKey, prompt);
-    showAiTestResult(`翻译成功！"${testText}" → "${translatedText}"`, 'success');
+    showAiTestResult(`Translation successful! "${testText}" → "${translatedText}"`, 'success');
   } catch (e) {
-    showAiTestResult(`翻译失败: ${e.message}`, 'error');
+    showAiTestResult(`Translation failed: ${e.message}`, 'error');
   } finally {
     elements.btnTestAi.disabled = false;
-    elements.btnTestAi.querySelector('.btn-label').textContent = '测试翻译';
+    elements.btnTestAi.querySelector('.btn-label').textContent = 'Test Translation';
   }
 }
 
 /**
- * 调用 AI 翻译 API
+ * Call AI API for translation
  */
 async function callAiTranslate(text, baseUrl, modelId, apiKey, prompt) {
   const url = `${baseUrl}/v1/chat/completions`;
-
   const systemPrompt = prompt.replace('{text}', text);
 
   const response = await fetch(url, {
@@ -371,19 +370,19 @@ async function callAiTranslate(text, baseUrl, modelId, apiKey, prompt) {
   const data = await response.json();
 
   if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-    throw new Error('无效的 API 响应');
+    throw new Error('Invalid API response');
   }
 
   return data.choices[0].message.content.trim();
 }
 
 /**
- * 显示 AI 测试结果
+ * Show AI translation test result
  */
 function showAiTestResult(message, type) {
   elements.aiTestResult.textContent = message;
   elements.aiTestResult.className = 'test-result ' + type;
 }
 
-// 初始化
+// Initialize script
 init();
